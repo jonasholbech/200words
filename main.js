@@ -33,7 +33,7 @@ function loaded() {
   recognition.continuous = false;
   recognition.lang = "en-US";
   recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition.maxAlternatives = 10;
 
   let counter = 0;
   let data = [];
@@ -129,7 +129,10 @@ function loaded() {
     var result = event.results[0][0].transcript;
     diagnostic.textContent = "Result received: " + result + ".";
     console.log("Confidence: " + event.results[0][0].confidence);
-    if (event.results[0][0].transcript == data[counter].s.toLowerCase()) {
+    const results = [...event.results[0]].map(res => res.transcript);
+    //if (event.results[0][0].transcript == data[counter].s.toLowerCase()) {
+    if (results.includes(data[counter].s.toLowerCase())) {
+      console.log(results);
       success();
     }
   };
