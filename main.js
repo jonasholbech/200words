@@ -35,13 +35,16 @@ function loaded() {
   recognition.interimResults = false;
   recognition.maxAlternatives = 10;
 
-  let counter = 0;
+  //TODO: localstorage
+  let counter = Number(localStorage.getItem("counter"));
+  localStorage.setItem("counter", counter);
+  console.log("Counter: ", counter);
   let data = [];
   function init() {
     fetch("english.json")
-      .then(res => res.json())
-      .then(data => {
-        setup(data.filter(d => d.s !== ""));
+      .then((res) => res.json())
+      .then((data) => {
+        setup(data.filter((d) => d.s !== ""));
       });
   }
   init();
@@ -87,20 +90,20 @@ function loaded() {
     utterThis.pitch = pitch.value;
     utterThis.rate = rate.value;
     synth.speak(utterThis);
-    utterThis.onend = function() {
+    utterThis.onend = function () {
       hidden.appendChild(loader);
       read.querySelector("p").classList.remove("hidden");
     };
   }
   function setup(initialData) {
     data = initialData;
-    read.addEventListener("click", e => {
+    read.addEventListener("click", (e) => {
       speak(data[counter].s);
     });
-    hear.addEventListener("click", e => {
+    hear.addEventListener("click", (e) => {
       listen(data[counter].s);
     });
-    title.textContent = data[counter].w;
+    title.textContent = `${counter + 1}/${data.length} ${data[counter].w}`;
     text.textContent = data[counter].s;
   }
 
@@ -112,7 +115,8 @@ function loaded() {
       card.classList.remove("move-out");
       card.classList.remove("move-in");
       counter++;
-      title.textContent = data[counter].w;
+      localStorage.setItem("counter", counter);
+      title.textContent = `${counter + 1}/${data.length} ${data[counter].w}`;
       text.textContent = data[counter].s;
       diagnostic.textContent = "";
 
@@ -125,18 +129,20 @@ function loaded() {
     hear.querySelector("p").classList.add("hidden");
     recognition.start();
   }
-  recognition.onresult = function(event) {
+  recognition.onresult = function (event) {
     var result = event.results[0][0].transcript;
     diagnostic.textContent = "Result received: " + result + ".";
     console.log("Confidence: " + event.results[0][0].confidence);
-    const results = [...event.results[0]].map(res => res.transcript);
+    const results = [...event.results[0]].map((res) =>
+      res.transcript.replace(".", "").toLowerCase()
+    );
     //if (event.results[0][0].transcript == data[counter].s.toLowerCase()) {
+    console.log(results, data[counter].s.toLowerCase());
     if (results.includes(data[counter].s.toLowerCase())) {
-      console.log(results);
       success();
     }
   };
-  recognition.onspeechend = function() {
+  recognition.onspeechend = function () {
     hidden.appendChild(loader);
     hear.querySelector("p").classList.remove("hidden");
     recognition.stop();
@@ -149,7 +155,7 @@ function loaded() {
   // Reference to native method(s)
   var oldLog = console.log;
 
-  console.log = function(...items) {
+  console.log = function (...items) {
     // Call native method first
     oldLog.apply(this, items);
 
@@ -158,7 +164,7 @@ function loaded() {
       items[i] =
         typeof item === "object" ? JSON.stringify(item, null, 4) : item;
     });
-    output.innerHTML += items.join(" ") + "<br />";
+    output.innerHTML = items.join(" ") + "<br />";
   };
 
   // You could even allow Javascript input...
